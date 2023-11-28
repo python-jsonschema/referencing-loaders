@@ -1,0 +1,8 @@
+file:.#egg=referencing-loaders
+furo
+pygments-github-lexers
+sphinx-copybutton
+sphinx>5
+sphinxcontrib-spelling>5
+sphinxext-opengraph
+url.py
