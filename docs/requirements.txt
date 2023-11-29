@@ -39,7 +39,7 @@ pygments==2.17.2
     #   sphinx
 pygments-github-lexers==0.0.5
     # via -r docs/requirements.in
-referencing==0.31.0
+referencing==0.31.1
     # via referencing-loaders
 file:.#egg=referencing-loaders
     # via -r docs/requirements.in

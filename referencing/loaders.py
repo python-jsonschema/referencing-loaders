@@ -3,17 +3,32 @@ Helpers for loading `referencing.Resource`\ s out of various places.
 """
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable
+import json
+import os
 
 from referencing import Resource
 
 if TYPE_CHECKING:
-    from pathlib import Path
+    from referencing.typing import URI
 
 
-def from_path(path: Path) -> Iterable[Resource[Any]]:
+def from_path(path: Path) -> Iterable[tuple[URI, Resource[Any]]]:
     """
     Load some resources recursively from a given directory path.
     """
-    for _, _, _ in path.walk():
-        yield Resource.opaque(None)
+    for root, _, files in _walk(path):
+        for file in files:
+            path = root / file
+            contents = json.loads(path.read_text())
+            yield path.as_uri(), Resource.from_contents(contents)
+
+
+def _walk(path: Path):
+    walk = getattr(path, "walk", None)
+    if walk is not None:
+        yield from walk()
+        return
+    for root, dirs, files in os.walk(path):
+        yield Path(root), dirs, files
