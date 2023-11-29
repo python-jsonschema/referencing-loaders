@@ -45,7 +45,3 @@ def test_absolute_internally_identified(tmp_path):
 def test_empty(tmp_path):
     registry = EMPTY_REGISTRY.with_resources(loaders.from_path(tmp_path))
     assert registry == EMPTY_REGISTRY
-
-
-def test_custom_loads(tmp_path):
-    pass
