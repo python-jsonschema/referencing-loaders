@@ -134,4 +134,4 @@ docstring-quotes = "double"
 [tool.ruff.per-file-ignores]
 "noxfile.py" = ["ANN", "D100"]
 "docs/*" = ["ANN", "D"]
-"referencing/tests/*" = ["ANN", "D", "RUF012"]
+"referencing_loaders/tests/*" = ["ANN", "D", "RUF012"]

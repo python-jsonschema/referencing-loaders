@@ -1,7 +1,9 @@
 import json
 
-from referencing import Registry, loaders
+from referencing import Registry
 from referencing.jsonschema import EMPTY_REGISTRY
+
+import referencing_loaders as loaders
 
 
 def test_absolute_internally_identified(tmp_path):

@@ -7,7 +7,7 @@ import nox
 ROOT = Path(__file__).parent
 PYPROJECT = ROOT / "pyproject.toml"
 DOCS = ROOT / "docs"
-PACKAGE = ROOT / "referencing"
+PACKAGE = ROOT / "referencing_loaders"
 
 REQUIREMENTS = dict(
     docs=DOCS / "requirements.txt",
