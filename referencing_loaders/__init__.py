@@ -8,21 +8,29 @@ from typing import TYPE_CHECKING, Any, Iterable
 import json
 import os
 
-from referencing import Resource
+from referencing import Resource, Specification
 
 if TYPE_CHECKING:
     from referencing.typing import URI
 
 
-def from_path(path: Path) -> Iterable[tuple[URI, Resource[Any]]]:
+def from_path(root: Path) -> Iterable[tuple[URI, Resource[Any]]]:
     """
     Load some resources recursively from a given directory path.
+
+    Subdirectories are defaulted to the first version seen (starting from
+    the root) -- though it still is often a good idea to explicitly indicate
+    what specification every resource is written for internally.
     """
-    for root, _, files in _walk(path):
+    specification: Specification[Any] | None = None
+    for dir, _, files in _walk(root):
         for file in files:
-            path = root / file
+            path = dir / file
             contents = json.loads(path.read_text())
-            yield path.as_uri(), Resource.from_contents(contents)
+            if specification is None:
+                specification = Specification.detect(contents)  # type: ignore[reportUnknownMemberType]
+            resource = specification.detect(contents).create_resource(contents)
+            yield path.as_uri(), resource
 
 
 def _walk(path: Path) -> Iterable[tuple[Path, Iterable[str], Iterable[str]]]:

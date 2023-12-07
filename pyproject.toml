@@ -38,7 +38,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-  "referencing>=0.31.1",
+  "referencing>=0.32.0",
 ]
 
 [project.urls]
