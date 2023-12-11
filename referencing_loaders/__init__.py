@@ -62,7 +62,7 @@ def from_traversable(root: Traversable) -> Iterable[tuple[URI, Resource[Any]]]:
     return _from_walked(
         each
         for each in _walk_traversable(root)
-        if not each.name.endswith(".py")
+        if not each.name.endswith((".py", ".pyc", ".pyo"))
     )
 
 
