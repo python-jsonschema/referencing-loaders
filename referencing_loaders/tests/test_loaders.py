@@ -3,7 +3,7 @@ import sys
 
 try:
     from importlib.resources import files
-except ImportError:
+except ImportError:  # pragma: no cover
     from importlib_resources import files
 
 from referencing import Registry
