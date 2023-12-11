@@ -100,10 +100,12 @@ def test_traversable(tmp_path):
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "http://example.com/",
     }
+    subpath, subschema = schemas / "more/child.json", {"foo": "bar"}
 
-    schemas.mkdir(parents=True)
+    schemas.joinpath("more").mkdir(parents=True)
     package.joinpath("__init__.py").touch()
     path.write_text(json.dumps(schema))
+    subpath.write_text(json.dumps(subschema))
 
     # ?!?! -- without this, importlib.resources.files fails on 3.9 and no other
     # version!?!?
@@ -114,13 +116,14 @@ def test_traversable(tmp_path):
         resources = loaders.from_traversable(files("foo.schemas"))
         registry = EMPTY_REGISTRY.with_resources(resources)
 
-        assert (
-            registry.crawl()
-            == Registry()
-            .with_contents(
-                [(path.as_uri(), schema)],
-            )
-            .crawl()
+        expected = Registry().with_resources(
+            (each, DRAFT202012.create_resource(contents))
+            for each, contents in [
+                (path.as_uri(), schema),
+                (subpath.as_uri(), subschema),
+            ]
         )
+
+        assert registry.crawl() == expected.crawl()
     finally:
         sys.path.pop()
