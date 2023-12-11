@@ -11,6 +11,8 @@ import os
 from referencing import Resource, Specification
 
 if TYPE_CHECKING:
+    from importlib.resources.abc import Traversable
+
     from referencing.typing import URI
 
 
@@ -22,21 +24,55 @@ def from_path(root: Path) -> Iterable[tuple[URI, Resource[Any]]]:
     the root) -- though it still is often a good idea to explicitly indicate
     what specification every resource is written for internally.
     """
-    specification: Specification[Any] | None = None
-    for dir, _, files in _walk(root):
-        for file in files:
-            path = dir / file
-            contents = json.loads(path.read_text())
-            if specification is None:
-                specification = Specification.detect(contents)  # type: ignore[reportUnknownMemberType]
-            resource = specification.detect(contents).create_resource(contents)
-            yield path.as_uri(), resource
+    return _from_walked(_walk(root))
 
 
-def _walk(path: Path) -> Iterable[tuple[Path, Iterable[str], Iterable[str]]]:
+def _walk(path: Path) -> Iterable[Path]:
     walk = getattr(path, "walk", None)
-    if walk is not None:
-        yield from walk()
-        return
-    for root, dirs, files in os.walk(path):  # pragma: no cover
-        yield Path(root), dirs, files
+    if walk is None:
+        for dir, _, files in os.walk(path):  # pragma: no cover
+            for file in files:
+                yield Path(dir) / file
+    else:
+        for dir, _, files in walk():
+            for file in files:
+                yield dir / file
+
+
+def _walk_traversable(root: Traversable) -> Iterable[Traversable]:
+    """
+    .walk() for importlib resources paths, which don't have the method :/
+    """  # noqa: D415
+    walking = [root]
+    while walking:
+        path = walking.pop()
+        for each in path.iterdir():
+            if each.is_dir():
+                walking.append(each)
+            else:
+                yield each
+
+
+def from_traversable(root: Traversable) -> Iterable[tuple[URI, Resource[Any]]]:
+    """
+    Load some resources from a given `importlib.resources` traversable.
+
+    (I.e. load schemas from data within a Python package.)
+    """
+    return _from_walked(
+        each
+        for each in _walk_traversable(root)
+        if not each.name.endswith(".py")
+    )
+
+
+def _from_walked(
+    paths: Iterable[Path | Traversable],
+) -> Iterable[tuple[URI, Resource[Any]]]:
+    specification: Specification[Any] | None = None
+    for path in paths:
+        contents = json.loads(path.read_text())
+        if specification is None:
+            specification = Specification.detect(contents)  # type: ignore[reportUnknownMemberType]
+        resource = specification.detect(contents).create_resource(contents)
+        yield getattr(path, "as_uri", lambda: "")(), resource

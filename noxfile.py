@@ -37,7 +37,11 @@ def tests(session):
     """
     Run the test suite with a corresponding Python version.
     """
-    session.install("-r", REQUIREMENTS["tests"])
+    session.install(
+        "-r",
+        REQUIREMENTS["tests"],
+        "importlib-resources; python_version<'3.11'",
+    )
 
     if session.posargs and session.posargs[0] == "coverage":
         if len(session.posargs) > 1 and session.posargs[1] == "github":

@@ -1,4 +1,10 @@
 import json
+import sys
+
+try:
+    from importlib.resources import files
+except ImportError:
+    from importlib_resources import files
 
 from referencing import Registry
 from referencing.jsonschema import DRAFT202012, EMPTY_REGISTRY
@@ -84,3 +90,37 @@ def test_schema_is_inherited_downwards(tmp_path):
 def test_empty(tmp_path):
     registry = EMPTY_REGISTRY.with_resources(loaders.from_path(tmp_path))
     assert registry == EMPTY_REGISTRY
+
+
+def test_traversable(tmp_path):
+    package = tmp_path / "foo"
+
+    schemas = package / "schemas"
+    path, schema = schemas / "schema.json", {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "http://example.com/",
+    }
+
+    schemas.mkdir(parents=True)
+    package.joinpath("__init__.py").touch()
+    path.write_text(json.dumps(schema))
+
+    # ?!?! -- without this, importlib.resources.files fails on 3.9 and no other
+    # version!?!?
+    schemas.joinpath("__init__.py").touch()
+
+    try:
+        sys.path.append(str(tmp_path))
+        resources = loaders.from_traversable(files("foo.schemas"))
+        registry = EMPTY_REGISTRY.with_resources(resources)
+
+        assert (
+            registry.crawl()
+            == Registry()
+            .with_contents(
+                [(path.as_uri(), schema)],
+            )
+            .crawl()
+        )
+    finally:
+        sys.path.pop()
