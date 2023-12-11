@@ -75,4 +75,5 @@ def _from_walked(
         if specification is None:
             specification = Specification.detect(contents)  # type: ignore[reportUnknownMemberType]
         resource = specification.detect(contents).create_resource(contents)
-        yield getattr(path, "as_uri", lambda: "")(), resource
+        uri = getattr(path, "as_uri", lambda: "")()
+        yield uri, resource
