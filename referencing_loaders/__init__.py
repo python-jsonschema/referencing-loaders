@@ -1,6 +1,7 @@
 r"""
 Helpers for loading `referencing.Resource`\ s out of various places.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
