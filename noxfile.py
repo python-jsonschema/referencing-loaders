@@ -17,8 +17,8 @@ REQUIREMENTS_IN = [  # this is actually ordered, as files depend on each other
     path.parent / f"{path.stem}.in" for path in REQUIREMENTS.values()
 ]
 
-SUPPORTED = ["3.8", "3.9", "3.10", "3.11", "3.12", "pypy3.10"]
-LATEST = "3.12"
+SUPPORTED = ["3.8", "3.9", "3.10", "pypy3.10", "3.11", "3.12"]
+LATEST = SUPPORTED[-1]
 
 nox.options.sessions = []
 
@@ -45,7 +45,7 @@ def tests(session):
 
     if session.posargs and session.posargs[0] == "coverage":
         if len(session.posargs) > 1 and session.posargs[1] == "github":
-            github = os.environ["GITHUB_STEP_SUMMARY"]
+            github = Path(os.environ["GITHUB_STEP_SUMMARY"])
         else:
             github = None
 
@@ -54,7 +54,7 @@ def tests(session):
         if github is None:
             session.run("coverage", "report")
         else:
-            with open(github, "a") as summary:
+            with github.open("a") as summary:
                 summary.write("### Coverage\n\n")
                 summary.flush()  # without a flush, output seems out of order.
                 session.run(
@@ -93,7 +93,7 @@ def style(session):
     Check Python code style.
     """
     session.install("ruff")
-    session.run("ruff", "check", ROOT)
+    session.run("ruff", "check", ROOT, __file__)
 
 
 @session()
@@ -102,7 +102,7 @@ def typing(session):
     Check static typing.
     """
     session.install("pyright", ROOT)
-    session.run("pyright", PACKAGE)
+    session.run("pyright", *session.posargs, PACKAGE)
 
 
 @session(tags=["docs"])
@@ -158,7 +158,9 @@ def docs_style(session):
 @session(default=False)
 def requirements(session):
     """
-    Update the project's pinned requirements. Commit the result.
+    Update the project's pinned requirements.
+
+    You should commit the result afterwards.
     """
     session.install("pip-tools")
     for each in REQUIREMENTS_IN:
