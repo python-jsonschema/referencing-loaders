@@ -2,27 +2,23 @@ name: CI
 
 on:
   push:
+    branches-ignore:
+      - "wip*"
+    tags:
+      - "v*"
   pull_request:
   release:
     types: [published]
   schedule:
     # Daily at 7:4
     - cron: "4 7 * * *"
+  workflow_dispatch:
 
 env:
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
   PIP_NO_PYTHON_VERSION_WARNING: "1"
 
 jobs:
-  pre-commit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.x"
-      - uses: pre-commit/action@v3.0.1
-
   list:
     runs-on: ubuntu-latest
     outputs:
@@ -40,6 +36,7 @@ jobs:
   ci:
     needs: list
     runs-on: ${{ matrix.os }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -70,8 +67,12 @@ jobs:
             3.12
             pypy3.10
           allow-prereleases: true
+          cache: pip
+      - name: Set up uv
+        uses: hynek/setup-cached-uv@v1
       - name: Set up nox
         uses: wntrblm/nox@2024.04.15
+
       - name: Run nox
         run: nox -s "${{ matrix.noxenv }}" -- ${{ matrix.posargs }}
 
@@ -90,6 +91,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
+          cache: pip
           python-version: "3.x"
       - name: Install dependencies
         run: python -m pip install build

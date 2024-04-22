@@ -14,7 +14,7 @@ REQUIREMENTS = dict(
     tests=ROOT / "test-requirements.txt",
 )
 REQUIREMENTS_IN = [  # this is actually ordered, as files depend on each other
-    path.parent / f"{path.stem}.in" for path in REQUIREMENTS.values()
+    (path.parent / f"{path.stem}.in", path) for path in REQUIREMENTS.values()
 ]
 
 SUPPORTED = ["3.8", "3.9", "3.10", "pypy3.10", "3.11", "3.12"]
@@ -169,5 +169,7 @@ def requirements(session):
         session.install("pip-tools")
         cmd = ["pip-compile", "--resolver", "backtracking", "--strip-extras"]
 
-    for each in REQUIREMENTS_IN:
-        session.run(*cmd, "-U", each.relative_to(ROOT))
+    for each, out in REQUIREMENTS_IN:
+        # otherwise output files end up with silly absolute path comments...
+        relative = each.relative_to(ROOT)
+        session.run(*cmd, "--upgrade", "--output-file", out, relative)
