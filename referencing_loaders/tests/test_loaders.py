@@ -87,6 +87,23 @@ def test_schema_is_inherited_downwards(tmp_path):
     assert registry.crawl() == expected.crawl()
 
 
+def test_hidden_files_are_ignored(tmp_path):
+    schema_path, schema = tmp_path / "schema.json", {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "http://example.com/",
+    }
+    hidden_path = tmp_path / ".hidden"
+
+    schema_path.write_text(json.dumps(schema))
+    hidden_path.write_text("total nonsense")
+
+    expected = Registry().with_contents([(schema_path.as_uri(), schema)])
+
+    resources = loaders.from_path(tmp_path)
+    registry = EMPTY_REGISTRY.with_resources(resources)
+    assert registry.crawl() == expected.crawl()
+
+
 def test_empty(tmp_path):
     registry = EMPTY_REGISTRY.with_resources(loaders.from_path(tmp_path))
     assert registry == EMPTY_REGISTRY

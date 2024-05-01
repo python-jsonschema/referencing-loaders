@@ -25,7 +25,9 @@ def from_path(root: Path) -> Iterable[tuple[URI, Resource[Any]]]:
     the root) -- though it still is often a good idea to explicitly indicate
     what specification every resource is written for internally.
     """
-    return _from_walked(_walk(root))
+    return _from_walked(
+        each for each in _walk(root) if each.name.endswith(".json")
+    )
 
 
 def _walk(path: Path) -> Iterable[Path]:
@@ -61,9 +63,7 @@ def from_traversable(root: Traversable) -> Iterable[tuple[URI, Resource[Any]]]:
     (I.e. load schemas from data within a Python package.)
     """
     return _from_walked(
-        each
-        for each in _walk_traversable(root)
-        if not each.name.endswith((".py", ".pyc", ".pyo"))
+        each for each in _walk_traversable(root) if each.name.endswith(".json")
     )
 
 
