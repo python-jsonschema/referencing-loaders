@@ -5,13 +5,14 @@ Helpers for loading `referencing.Resource`\ s out of various places.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Iterable
+from typing import TYPE_CHECKING, Any
 import json
 import os
 
 from referencing import Resource, Specification
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
     from importlib.resources.abc import Traversable
 
     from referencing.typing import URI
