@@ -75,7 +75,7 @@ def _from_walked(
     for path in paths:
         contents = json.loads(path.read_text())
         if specification is None:
-            specification = Specification.detect(contents)  # type: ignore[reportUnknownMemberType]
+            specification = Specification.detect(contents)
         resource = specification.detect(contents).create_resource(contents)
         uri = getattr(path, "as_uri", lambda: "")()  # pragma: no cover
         yield uri, resource
